@@ -1,0 +1,143 @@
+body {
+    /* Use Noto Sans as the primary font, falling back to generic sans-serif */
+    font-family: "Noto Sans", sans-serif; 
+    line-height: 1.5;
+    margin: 20px;
+    background-color: #f4f4f4;
+}
+
+.author-name {
+    /* font-family: "Noto Sans", sans-serif; /* Already inherited from body */
+    font-weight: bold;
+    color: #333;
+    margin-right: 5px;
+}
+
+.message-body {
+   /* font-family: "Noto Sans", sans-serif; /* Already inherited from body */
+    /* Allow long words/messages to wrap */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    /* Render whitespace and line breaks from JSON if any */
+    white-space: pre-wrap;
+    line-height: 1.4; /* Adjust line height for mixed content */
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="file"] {
+    display: block;
+    margin-bottom: 20px;
+}
+
+#chat-container {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-height: 70vh; /* Limit height and make it scrollable */
+    overflow-y: auto; /* Add vertical scrollbar when needed */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* --- Base Message Style --- */
+.chat-message {
+    display: flex; /* Use flexbox for alignment */
+    align-items: flex-start; /* Align items to the top */
+    margin-bottom: 8px;
+    padding: 5px 8px; /* Adjusted padding */
+    border-bottom: 1px solid #eee;
+    border-left: 3px solid transparent; /* For potential highlighting */
+}
+
+.chat-message:last-child {
+    border-bottom: none;
+}
+
+.author-photo {
+    width: 24px;  /* Smaller profile picture */
+    height: 24px;
+    border-radius: 50%; /* Make it circular */
+    margin-right: 8px;
+    flex-shrink: 0; /* Prevent image from shrinking */
+}
+
+.message-content {
+    flex-grow: 1; /* Allow content to take remaining space */
+}
+
+.message-header {
+    margin-bottom: 2px; /* Space between header and message body */
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: #666;
+    margin-right: 8px;
+}
+
+.author-name {
+    font-weight: bold;
+    color: #333;
+    margin-right: 5px;
+}
+
+.author-badge {
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+    vertical-align: middle; /* Align badge with text */
+}
+
+.message-body {
+    /* Allow long words/messages to wrap */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    /* Render whitespace and line breaks from JSON if any */
+    white-space: pre-wrap;
+    line-height: 1.4; /* Adjust line height for mixed content */
+}
+
+.chat-emoji {
+    width: 1.4em; /* Slightly larger than text */
+    height: 1.4em;
+    vertical-align: bottom; /* Align with text baseline */
+    margin: 0 1px;
+}
+
+/* --- Membership Message Specific Styles --- */
+.chat-membership-message {
+    background-color: hsl(195, 53%, 95%); /* Light blue background */
+    border-left-color: hsl(195, 90%, 40%); /* Blue left border */
+}
+
+.membership-header-primary {
+    font-weight: bold;
+    color: hsl(195, 90%, 30%); /* Darker blue */
+    display: block; /* Put on its own line */
+    font-size: 0.9em;
+}
+.membership-header-subtext {
+    font-style: italic;
+    color: #555;
+    display: block; /* Put on its own line */
+    font-size: 0.9em;
+    margin-bottom: 4px;
+}
+
+
+.error {
+    color: red;
+    font-weight: bold;
+}
+.warning {
+    color: orange;
+}
