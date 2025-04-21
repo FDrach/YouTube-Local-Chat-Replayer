@@ -1,7 +1,10 @@
 const fileInput = document.getElementById('jsonFile');
 const chatContainer = document.getElementById('chat-container');
+const urlInput = document.getElementById('chatUrl'); // New URL input
+const loadUrlButton = document.getElementById('loadUrlButton'); // New button
 
 fileInput.addEventListener('change', handleFileSelect);
+loadUrlButton.addEventListener('click', handleUrlLoad); // Add listener for URL load
 
 /**
  * Handles the file selection event, reads the file, and initiates processing.
@@ -10,7 +13,7 @@ fileInput.addEventListener('change', handleFileSelect);
 function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) {
-        chatContainer.innerHTML = '<p class="error">No file selected.</p>';
+        displayError('No file selected.');
         return;
     }
 
@@ -23,13 +26,76 @@ function handleFileSelect(event) {
 
     reader.onload = function(e) {
         const rawText = e.target.result;
-        let processedText = ''; // Define outside try for error reporting
+        processChatData(rawText); // Call the refactored processing function
+    };
 
+    reader.onerror = function(e) {
+        console.error("Error reading file:", e);
+        displayError('Error reading file.');
+    };
+
+    // Display loading message while reading
+    displayInfo('Reading file...');
+    reader.readAsText(file);
+}
+
+/**
+ * Handles the click event for the "Load from URL" button.
+ */
+async function handleUrlLoad() {
+    const url = urlInput.value.trim();
+    if (!url) {
+        displayError('Please enter a URL.');
+        return;
+    }
+
+    // Basic check if it looks like a URL (not exhaustive)
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+       displayWarning('URL does not start with http:// or https://. Attempting to load anyway.');
+    }
+
+    displayInfo(`Loading data from ${url}...`); // Show loading message
+
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            // Handle HTTP errors (like 404 Not Found, 500 Internal Server Error)
+            throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+        }
+
+        // Check content type - warn if not JSON, but still try to process
+        const contentType = response.headers.get('content-type');
+        if (contentType && !contentType.includes('application/json')) {
+            console.warn(`Expected application/json, but received ${contentType}. Attempting to parse anyway.`);
+        }
+
+        const rawText = await response.text();
+        processChatData(rawText); // Process the fetched text
+
+    } catch (error) {
+        console.error("Error fetching or processing URL:", error);
+        let userMessage = `Error loading from URL: ${error.message}.`;
+        // Specifically check for network errors which might indicate CORS issues
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+             userMessage += ' This might be a network issue or a CORS (Cross-Origin Resource Sharing) problem. The server hosting the URL must allow requests from this page.';
+        }
+        displayError(userMessage + ' Check console for more details.');
+    }
+}
+
+/**
+ * Processes the raw chat data string (from file or URL).
+ * Parses JSON, extracts actions, and displays messages.
+ * @param {string} rawText - The raw text content (expected to be JSON).
+ */
+function processChatData(rawText) {
+    let processedText = ''; // Define outside try for error reporting
         try {
             processedText = rawText.trim();
 
             if (!processedText) {
-                chatContainer.innerHTML = '<p class="error">File is empty.</p>';
+            displayError('Received data is empty.');
                 return;
             }
 
@@ -70,25 +136,46 @@ function handleFileSelect(event) {
             displayChatMessages(chatActions);
 
         } catch (error) {
-             console.error("Error during file processing:", error);
+         console.error("Error during data processing:", error);
              // Log relevant info for debugging, if needed
              // console.error("Raw text snippet (first 500 chars):", rawText.substring(0, 500));
              // console.error("Processed text snippet (first 100 chars):", processedText.substring(0, 100));
 
-             let userMessage = `Error processing file: ${error.message}.`;
+         let userMessage = `Error processing data: ${error.message}.`;
              if (error instanceof SyntaxError) {
-                  userMessage = `Error parsing JSON: ${error.message}. The file might be corrupted or have an unexpected format.`;
+              userMessage = `Error parsing JSON: ${error.message}. The data might be corrupted or have an unexpected format.`;
              }
-             chatContainer.innerHTML = `<p class="error">${userMessage} Check console for more details.</p>`;
+         displayError(userMessage + ' Check console for more details.');
         }
-    };
+}
 
-    reader.onerror = function(e) {
-        console.error("Error reading file:", e);
-        chatContainer.innerHTML = '<p class="error">Error reading file.</p>';
-    };
+/**
+ * Displays an error message in the chat container.
+ * @param {string} message - The error message text.
+ */
+function displayError(message) {
+    chatContainer.innerHTML = `<p class="error">${message}</p>`;
+}
 
-    reader.readAsText(file);
+/**
+ * Displays a warning message in the chat container.
+ * @param {string} message - The warning message text.
+ */
+function displayWarning(message) {
+    // Prepend warning to allow content loading afterwards if needed
+    const warningElement = document.createElement('p');
+    warningElement.classList.add('warning');
+    warningElement.textContent = message;
+    chatContainer.innerHTML = ''; // Clear previous content before adding warning
+    chatContainer.appendChild(warningElement);
+}
+
+/**
+ * Displays an informational message (e.g., "Loading...") in the chat container.
+ * @param {string} message - The informational message text.
+ */
+function displayInfo(message) {
+    chatContainer.innerHTML = `<p class="info">${message}</p>`;
 }
 
 /**
@@ -132,6 +219,7 @@ function processMessageRuns(runs, targetElement) {
 
 /**
  * Displays the processed chat messages in the chat container.
+ * Clears previous content before displaying.
  * @param {Array} actions - The array of chat actions to display.
  */
 function displayChatMessages(actions) {
@@ -286,12 +374,14 @@ function displayChatMessages(actions) {
     const summary = document.createElement('p');
     let summaryText;
 
-    if (messageCount === 0 && actions.length > 0) {
-         summaryText = `Processed ${actions.length} actions, but found no displayable messages.`;
-    } else if (actions.length === 0) {
-         // This case is handled earlier, but included for completeness
-         summaryText = `No chat actions found in the file data.`;
-    } else {
+    // Adjust summary logic slightly for clarity
+    if (messageCount === 0 && (skippedTickerCount > 0 || skippedOtherActionCount > 0 || skippedOtherItemCount > 0)) {
+         summaryText = `Processed data, but found no displayable messages.`;
+    } else if (messageCount === 0 && actions.length === 0) {
+        // This state should be caught earlier, but acts as a fallback
+        summaryText = `No chat actions found in the provided data.`;
+    }
+     else {
         summaryText = `Displayed ${messageCount} messages.`;
     }
 

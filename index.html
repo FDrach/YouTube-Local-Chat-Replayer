@@ -13,11 +13,20 @@
 <body>
     <h1>YouTube Chat Replay Viewer</h1>
 
-    <label for="jsonFile">Load Chat JSON File:</label>
-    <input type="file" id="jsonFile" accept=".json">
+    <div class="load-options">
+        <div class="load-option">
+            <label for="jsonFile">Load Chat JSON File:</label>
+            <input type="file" id="jsonFile" accept=".json">
+        </div>
+        <div class="load-option">
+            <label for="chatUrl">Load from URL:</label>
+            <input type="url" id="chatUrl" placeholder="Enter chat JSON URL">
+            <button id="loadUrlButton">Load from URL</button>
+        </div>
+    </div>
 
     <div id="chat-container">
-        <p>Please load a YouTube chat replay JSON file.</p>
+        <p>Please load a YouTube chat replay JSON file or provide a URL.</p>
     </div>
 
     <script src="script.js"></script>

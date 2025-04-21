@@ -141,3 +141,83 @@ input[type="file"] {
 .warning {
     color: orange;
 }
+
+.load-options {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 20px; /* Space between file and URL options */
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #e9e9e9; /* Light grey background for the options area */
+    border-radius: 5px;
+}
+
+.load-option {
+    flex: 1; /* Allow options to share space */
+    min-width: 250px; /* Minimum width before wrapping */
+}
+
+.load-option label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.load-option input[type="file"],
+.load-option input[type="url"] {
+    display: block;
+    width: calc(100% - 10px); /* Adjust width to fit padding */
+    padding: 5px;
+    margin-bottom: 5px;
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.load-option button {
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.load-option button:hover {
+    background-color: #0056b3;
+}
+
+#chat-container {
+    /* (existing styles) */
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-height: 70vh; /* Limit height and make it scrollable */
+    overflow-y: auto; /* Add vertical scrollbar when needed */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 10px; /* Add some space above chat if load options wrap */
+}
+
+
+/* Make sure body styles from before are still present */
+body {
+    /* Use Noto Sans as the primary font, falling back to generic sans-serif */
+    font-family: "Noto Sans", sans-serif;
+    line-height: 1.5;
+    margin: 20px;
+    background-color: #f4f4f4;
+}
+
+/* (Include all other existing styles from your original style.css here) */
+
+/* ... rest of your existing styles ... */
+
+.error {
+    color: red;
+    font-weight: bold;
+}
+.warning {
+    color: orange;
+}
+.info { /* Added for loading messages */
+    color: #0056b3;
+}
