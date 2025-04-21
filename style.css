@@ -1,3 +1,47 @@
+#downloadProgress {
+  display: none; /* Hide by default */
+  width: 100%;
+  margin-bottom: 10px;
+  height: 8px; /* Example height */
+  appearance: none; /* Allows custom styling */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Style the progress bar track (background) */
+#downloadProgress::-webkit-progress-bar {
+  background-color: #eee;
+  border-radius: 4px;
+}
+/* Style the progress bar value (the moving part) */
+#downloadProgress::-webkit-progress-value {
+  background-color: #007bff;
+  border-radius: 4px;
+  transition: width 0.1s linear; /* Smooth transition if value changes */
+}
+/* Firefox specific styling */
+#downloadProgress::-moz-progress-bar {
+  background-color: #007bff;
+  border-radius: 4px;
+  transition: width 0.1s linear;
+}
+
+/* Style for indeterminate state */
+#downloadProgress:indeterminate {
+  background-image: linear-gradient(to right, #007bff 30%, #eee 30%);
+  background-size: 200% 100%;
+  animation: indeterminate-progress 1.5s linear infinite;
+}
+
+@keyframes indeterminate-progress {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 body {
   /* Use Noto Sans as the primary font, falling back to generic sans-serif */
   font-family: "Noto Sans", sans-serif;
@@ -84,11 +128,7 @@ input[type="file"] {
   margin-right: 8px;
 }
 
-.author-name {
-  font-weight: bold;
-  color: #333;
-  margin-right: 5px;
-}
+/* .author-name defined above */
 
 .author-badge {
   width: 16px;
@@ -97,14 +137,7 @@ input[type="file"] {
   vertical-align: middle; /* Align badge with text */
 }
 
-.message-body {
-  /* Allow long words/messages to wrap */
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  /* Render whitespace and line breaks from JSON if any */
-  white-space: pre-wrap;
-  line-height: 1.4; /* Adjust line height for mixed content */
-}
+/* .message-body defined above */
 
 .chat-emoji {
   width: 1.4em; /* Slightly larger than text */
@@ -196,26 +229,10 @@ input[type="file"] {
   margin-top: 10px; /* Add some space above chat if load options wrap */
 }
 
-/* Make sure body styles from before are still present */
-body {
-  /* Use Noto Sans as the primary font, falling back to generic sans-serif */
-  font-family: "Noto Sans", sans-serif;
-  line-height: 1.5;
-  margin: 20px;
-  background-color: #f4f4f4;
-}
+/* .body defined above */
 
-/* (Include all other existing styles from your original style.css here) */
-
-/* ... rest of your existing styles ... */
-
-.error {
-  color: red;
-  font-weight: bold;
-}
-.warning {
-  color: orange;
-}
+/* .error defined above */
+/* .warning defined above */
 .info {
   /* Added for loading messages */
   color: #0056b3;

@@ -1,16 +1,18 @@
 const fileInput = document.getElementById("jsonFile");
 const chatContainer = document.getElementById("chat-container");
-const urlInput = document.getElementById("chatUrl"); // New URL input
-const loadUrlButton = document.getElementById("loadUrlButton"); // New button
+const urlInput = document.getElementById("chatUrl");
+const loadUrlButton = document.getElementById("loadUrlButton");
+const progressBar = document.getElementById("downloadProgress"); // Get progress bar
 
 fileInput.addEventListener("change", handleFileSelect);
-loadUrlButton.addEventListener("click", handleUrlLoad); // Add listener for URL load
+loadUrlButton.addEventListener("click", handleUrlLoad);
 
 /**
  * Handles the file selection event, reads the file, and initiates processing.
  * @param {Event} event - The file input change event.
  */
 function handleFileSelect(event) {
+  progressBar.style.display = "none"; // Hide progress bar if file load is chosen
   const file = event.target.files[0];
   if (!file) {
     displayError("No file selected.");
@@ -56,9 +58,14 @@ async function handleUrlLoad() {
     displayWarning(
       "URL does not start with http:// or https://. Attempting to load anyway."
     );
+    // Don't return here, let the fetch attempt happen
   }
 
-  displayInfo(`Loading data from ${url}...`); // Show loading message
+  // Reset progress bar and display loading message initially
+  progressBar.style.display = 'none'; // Keep hidden until we know if we can show determinate progress
+  progressBar.removeAttribute("value");
+  progressBar.removeAttribute("max");
+  displayInfo(`Requesting data from ${url}...`);
 
   try {
     const response = await fetch(url);
@@ -70,18 +77,80 @@ async function handleUrlLoad() {
       );
     }
 
-    // Check content type - warn if not JSON, but still try to process
-    const contentType = response.headers.get("content-type");
-    if (contentType && !contentType.includes("application/json")) {
-      console.warn(
-        `Expected application/json, but received ${contentType}. Attempting to parse anyway.`
-      );
+    // Check for Content-Length header to enable determinate progress
+    const contentLength = response.headers.get('Content-Length');
+    const totalBytes = parseInt(contentLength, 10);
+    let receivedBytes = 0;
+    const chunks = []; // Array to store received chunks
+
+    // --- Prepare for reading the response body ---
+    if (!response.body) {
+      throw new Error("Response body is not available.");
+    }
+    const reader = response.body.getReader();
+
+    // --- Show progress bar ---
+    // If Content-Length is available and valid, set up determinate progress
+    if (!isNaN(totalBytes) && totalBytes > 0) {
+        console.log(`Total size: ${totalBytes} bytes. Starting download...`);
+        progressBar.max = totalBytes;
+        progressBar.value = 0;
+        progressBar.style.display = 'block';
+        // Update info message
+        displayInfo(`Downloading data from ${url}... (0%)`);
+    } else {
+        // Otherwise, use indeterminate progress
+        console.log("Content-Length not available or invalid. Using indeterminate progress.");
+        progressBar.removeAttribute("value"); // Ensure it's indeterminate
+        progressBar.style.display = 'block';
+        // Update info message
+        displayInfo(`Downloading data from ${url}...`);
     }
 
-    const rawText = await response.text();
-    processChatData(rawText); // Process the fetched text
+    // --- Read the stream ---
+    while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+            break; // Stream finished
+        }
+
+        chunks.push(value); // Store the chunk (Uint8Array)
+        receivedBytes += value.length;
+
+        // Update determinate progress bar if applicable
+        if (!isNaN(totalBytes) && totalBytes > 0) {
+            progressBar.value = receivedBytes;
+            const percent = Math.round((receivedBytes / totalBytes) * 100);
+            // Update info message with percentage (optional, can be spammy for many small chunks)
+            // Throttle this update if needed for performance
+             displayInfo(`Downloading data from ${url}... (${percent}%)`);
+        }
+        // No update needed for indeterminate bar here
+    }
+
+    // --- All chunks received, combine and decode ---
+    progressBar.style.display = 'none'; // Hide progress bar before processing
+    displayInfo("Download complete. Processing data...");
+
+    // Concatenate chunks into a single Uint8Array
+    const allChunks = new Uint8Array(receivedBytes);
+    let position = 0;
+    for (const chunk of chunks) {
+      allChunks.set(chunk, position);
+      position += chunk.length;
+    }
+
+    // Decode the Uint8Array into a string
+    const rawText = new TextDecoder("utf-8").decode(allChunks);
+
+    // --- Process the data ---
+    processChatData(rawText);
+
   } catch (error) {
     console.error("Error fetching or processing URL:", error);
+    // Hide progress bar on error
+    progressBar.style.display = "none";
     let userMessage = `Error loading from URL: ${error.message}.`;
     // Specifically check for network errors which might indicate CORS issues
     if (error instanceof TypeError && error.message === "Failed to fetch") {
@@ -160,6 +229,8 @@ function processChatData(rawText) {
     if (error instanceof SyntaxError) {
       userMessage = `Error parsing JSON: ${error.message}. The data might be corrupted or have an unexpected format.`;
     }
+    // Ensure progress bar is hidden if error happens during processing too
+    if (progressBar) progressBar.style.display = "none";
     displayError(userMessage + " Check console for more details.");
   }
 }
@@ -170,6 +241,8 @@ function processChatData(rawText) {
  */
 function displayError(message) {
   chatContainer.innerHTML = `<p class="error">${message}</p>`;
+  // Ensure progress bar is hidden when displaying an error
+  if (progressBar) progressBar.style.display = "none";
 }
 
 /**
@@ -183,6 +256,7 @@ function displayWarning(message) {
   warningElement.textContent = message;
   chatContainer.innerHTML = ""; // Clear previous content before adding warning
   chatContainer.appendChild(warningElement);
+  // No need to hide progress bar here, it's shown *after* this potential warning
 }
 
 /**
@@ -190,7 +264,19 @@ function displayWarning(message) {
  * @param {string} message - The informational message text.
  */
 function displayInfo(message) {
-  chatContainer.innerHTML = `<p class="info">${message}</p>`;
+  // Only update if the message content changes to avoid unnecessary redraws
+  // Find the existing info paragraph if it exists
+  const existingInfo = chatContainer.querySelector('p.info');
+  if (existingInfo) {
+      if (existingInfo.textContent !== message) {
+          existingInfo.textContent = message;
+      }
+  } else {
+      // If no info paragraph exists, clear container and add a new one
+      // (This typically happens on the first call or after an error/warning)
+      chatContainer.innerHTML = `<p class="info">${message}</p>`;
+  }
+  // Keep progress bar visible while info (like "Loading...") is shown
 }
 
 /**
@@ -241,7 +327,9 @@ function processMessageRuns(runs, targetElement) {
  * @param {Array} actions - The array of chat actions to display.
  */
 function displayChatMessages(actions) {
-  chatContainer.innerHTML = ""; // Clear previous content
+  // Ensure progress bar is hidden when messages are finally displayed
+  if (progressBar) progressBar.style.display = "none";
+  chatContainer.innerHTML = ""; // Clear previous content (like loading message)
   let messageCount = 0;
   let skippedTickerCount = 0;
   let skippedOtherActionCount = 0;
@@ -249,7 +337,8 @@ function displayChatMessages(actions) {
 
   if (!actions || actions.length === 0) {
     // Handle case where parsing was successful but no actions were found/extracted
-    chatContainer.innerHTML = "<p>No chat actions found in the file data.</p>";
+    chatContainer.innerHTML =
+      "<p>No chat actions found in the provided data.</p>";
     return;
   }
 
