@@ -1,34 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>YouTube Chat Replay</title>
-    <link rel="stylesheet" href="style.css">
-        <!-- Add Google Font Link -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Add Google Font Link -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
     <h1>YouTube Chat Replay Viewer</h1>
 
     <div class="load-options">
-        <div class="load-option">
-            <label for="jsonFile">Load Chat JSON File:</label>
-            <input type="file" id="jsonFile" accept=".json">
-        </div>
-        <div class="load-option">
-            <label for="chatUrl">Load from URL:</label>
-            <input type="url" id="chatUrl" placeholder="Enter chat JSON URL">
-            <button id="loadUrlButton">Load from URL</button>
-        </div>
+      <div class="load-option">
+        <label for="jsonFile">Load Chat JSON File:</label>
+        <input type="file" id="jsonFile" accept=".json" />
+      </div>
+      <div class="load-option">
+        <label for="chatUrl">Load from URL:</label>
+        <input type="url" id="chatUrl" placeholder="Enter chat JSON URL" />
+        <button id="loadUrlButton">Load from URL</button>
+      </div>
     </div>
 
     <div id="chat-container">
-        <p>Please load a YouTube chat replay JSON file or provide a URL.</p>
+      <p>Please load a YouTube chat replay JSON file or provide a URL.</p>
     </div>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
