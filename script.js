@@ -48,6 +48,7 @@ function handleFileSelect(event) {
  */
 async function handleUrlLoad() {
   const url = urlInput.value.trim();
+  const cleanName = decodeURI(url.split("/").pop());
   if (!url) {
     displayError("Please enter a URL.");
     return;
@@ -65,7 +66,7 @@ async function handleUrlLoad() {
   progressBar.style.display = 'none'; // Keep hidden until we know if we can show determinate progress
   progressBar.removeAttribute("value");
   progressBar.removeAttribute("max");
-  displayInfo(`Requesting data from ${url}...`);
+  displayInfo(`Requesting data from ${cleanName}...`);
 
   try {
     const response = await fetch(url);
@@ -97,14 +98,14 @@ async function handleUrlLoad() {
         progressBar.value = 0;
         progressBar.style.display = 'block';
         // Update info message
-        displayInfo(`Downloading data from ${url}... (0%)`);
+        displayInfo(`Downloading data from ${cleanName}... (0%)`);
     } else {
         // Otherwise, use indeterminate progress
         console.log("Content-Length not available or invalid. Using indeterminate progress.");
         progressBar.removeAttribute("value"); // Ensure it's indeterminate
         progressBar.style.display = 'block';
         // Update info message
-        displayInfo(`Downloading data from ${url}...`);
+        displayInfo(`Downloading data from ${cleanName}...`);
     }
 
     // --- Read the stream ---
@@ -124,7 +125,7 @@ async function handleUrlLoad() {
             const percent = Math.round((receivedBytes / totalBytes) * 100);
             // Update info message with percentage (optional, can be spammy for many small chunks)
             // Throttle this update if needed for performance
-             displayInfo(`Downloading data from ${url}... (${percent}%)`);
+             displayInfo(`Downloading data from ${cleanName}... (${percent}%)`);
         }
         // No update needed for indeterminate bar here
     }
@@ -151,7 +152,9 @@ async function handleUrlLoad() {
     console.error("Error fetching or processing URL:", error);
     // Hide progress bar on error
     progressBar.style.display = "none";
-    let userMessage = `Error loading from URL: ${error.message}.`;
+    let userMessage = `Error loading from URL: ${error.message}`;
+    userMessage +=
+      "<br> The source may be down, or you are blocking it. <br>";
     // Specifically check for network errors which might indicate CORS issues
     if (error instanceof TypeError && error.message === "Failed to fetch") {
       userMessage +=
